@@ -101,25 +101,23 @@ select   cu.first_name, cu.last_name,  MAX(DATEDIFF(r.return_date, r.rental_date
 	JOIN film f on i.film_id = f.film_id
 	GROUP by cu.customer_id, f.title;
 	
+
+DROP DATABASE BDCamilo;	
 	
-use BDCamilo;
-
 CREATE DATABASE BDCamilo;
-use BDCamilo
 
-
+use BDCamilo;
 
 --
 -- Table structure for table `tipo_documento`
 --
 
 CREATE TABLE tipo_documento (
-  id_tipo_documento  INTEGER UNSIGNED NOT NULL,
-  tipo_documento VARCHAR(50),
+  id_tipo_documento  INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
+  tipo_documento VARCHAR(25),
   PRIMARY KEY  (id_tipo_documento)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-drop TABLE tipo_documento;
 
 --
 -- Table structure for table `pais`
@@ -131,7 +129,6 @@ CREATE TABLE pais (
   PRIMARY KEY  (pais_id)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-DROP TABLE pais;
 
 --
 -- Table structure for table `cuidad`
@@ -142,25 +139,23 @@ CREATE TABLE ciudad (
   pais_id SMALLINT UNSIGNED NOT NULL,
   last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY  (ciudad_id),
-  KEY idx_fk_country_id (pais_id),
-  CONSTRAINT `fk_city_country` FOREIGN KEY (pais_id) REFERENCES pais (pais_id) ON DELETE RESTRICT ON UPDATE CASCADE
+  KEY idx_fk_pais_id (pais_id),
+  CONSTRAINT `fk_pais_id ` FOREIGN KEY (pais_id) REFERENCES pais (pais_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 --
 -- Table structure for table `direccion`
 --
-CREATE OR REPLACE TABLE direccion (
+CREATE TABLE direccion (
   direccion_id SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
   direccion VARCHAR(50) NOT NULL,
   ciudad_id SMALLINT UNSIGNED NOT NULL,
   postal_code VARCHAR(10) DEFAULT NULL,
-  phone VARCHAR(20) NOT NULL,
-  /*!50705 location GEOMETRY NOT NULL,*/
+  telefono VARCHAR(20) NOT NULL,
   last_update TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY  (direccion_id),
   KEY idx_fk_ciudad_id (ciudad_id),
-  /*!50705 SPATIAL KEY `idx_location` (location),*/
   CONSTRAINT `fk_ciudad_id` FOREIGN KEY (ciudad_id) REFERENCES ciudad (ciudad_id) ON DELETE RESTRICT ON UPDATE CASCADE
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -174,7 +169,7 @@ CREATE TABLE datos_persona (
   nombre VARCHAR(50),
   apellido_1 VARCHAR(50),
   apellido_2 VARCHAR(50),
-  dni varchar(50),
+  dni VARCHAR(50),
   email VARCHAR(50) DEFAULT NULL,
   direccion_id SMALLINT UNSIGNED NOT NULL,
   active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -241,7 +236,7 @@ CREATE TABLE artista (
 --
 
 CREATE TABLE canal (
-  id_canal  INTEGER UNSIGNED NOT NULL,
+  id_canal  INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
   tipo_canal VARCHAR(50),
   PRIMARY KEY  (id_canal)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -251,7 +246,7 @@ CREATE TABLE canal (
 --
 
 CREATE TABLE medio_pago (
-  id_medio_pago  INTEGER UNSIGNED NOT NULL,
+  id_medio_pago  INTEGER UNSIGNED NOT NULL AUTO_INCREMENT,
   medio_pago VARCHAR(50),
   PRIMARY KEY  (id_medio_pago)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -262,17 +257,107 @@ CREATE TABLE medio_pago (
 --
 
 CREATE TABLE escenario (
-  id_escenario  SMALLINT UNSIGNED NOT NULL,
-  capacidad VARCHAR(50),
-  nombre varchar(50),
-  id_ciudad SMALLINT UNSIGNED NOT NULL,
+  id_escenario  SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  capacidad SMALLINT UNSIGNED NOT NULL,
+  nombre varchar(50) NOT NULL,
+  direccion_id SMALLINT UNSIGNED NOT NULL,
   PRIMARY KEY  (id_escenario),
-  KEY idx_fk_id_ciudad_escenario (id_ciudad),
-  CONSTRAINT fk_id_ciudad_escenario FOREIGN KEY (id_ciudad) REFERENCES ciudad (id_ciudad) ON DELETE RESTRICT ON UPDATE CASCADE
+  KEY idx_fk_id_direccion_escenario (direccion_id),
+  CONSTRAINT fk_id_direccion_escenario FOREIGN KEY (direccion_id) REFERENCES direccion (direccion_id) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `zona`
+--
+
+CREATE TABLE zona (
+  id_zona  SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  capacidad_zona SMALLINT UNSIGNED NOT NULL,
+  nombre varchar(50) NOT NULL,
+  id_escenario SMALLINT UNSIGNED NOT NULL,
+  PRIMARY KEY  (id_zona),
+  KEY idx_fk_id_escenario (id_escenario),
+  CONSTRAINT fk_id_escenario FOREIGN KEY (id_escenario) REFERENCES escenario (id_escenario) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+	
+--
+-- Table structure for table `tipo_boleteria`
+--
+
+CREATE TABLE tipo_boleteria (
+  id_tipo_boleteria  SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  porcentaje_aumento SMALLINT UNSIGNED NOT NULL,
+  nombre varchar(50) NOT NULL,
+  PRIMARY KEY  (id_tipo_boleteria)
 )ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
-	
+
+--
+-- Table structure for table `evento`
+--
+
+CREATE TABLE evento (
+  id_evento  SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_escenario SMALLINT UNSIGNED NOT NULL,
+  id_artista SMALLINT UNSIGNED NOT NULL,
+  id_responsable SMALLINT UNSIGNED NOT NULL,
+  nombre varchar(50) NOT NULL,
+  fecha_inicio DATETIME NOT NULL,
+  fecha_fin DATETIME NOT NULL,
+  patrocinador VARCHAR(50) NOT NULL,
+  id_escenario SMALLINT UNSIGNED NOT NULL,
+  PRIMARY KEY  (id_evento),
+  KEY idx_fk_id_escenario_evento (id_escenario),
+  KEY idx_fk_id_artista_evento (id_artista),
+  KEY idx_fk_id_responsable_evento (id_responsable),
+  CONSTRAINT fk_id_escenario_evento FOREIGN KEY (id_escenario) REFERENCES escenario (id_escenario) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_id_artista_evento FOREIGN KEY (id_artista) REFERENCES artista (id_artista) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_id_responsable_evento FOREIGN KEY (id_responsable) REFERENCES responsable (id_responsable) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+
+--
+-- Table structure for table `compra`
+
+CREATE TABLE compra (
+  id_compra SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_boleta  SMALLINT UNSIGNED NOT NULL,
+  id_zona SMALLINT UNSIGNED NOT NULL,
+  id_tipo_boleta SMALLINT UNSIGNED NOT NULL,
+  id_evento SMALLINT UNSIGNED NOT NULL,
+  costo DECIMAL(15 , 5),
+  PRIMARY KEY  (id_boleta),
+  KEY idx_fk_id_zona (id_zona),
+  KEY idx_fk_id_tipo_boleta (id_tipo_boleta),
+  KEY idx_fk_id_evento (id_evento),
+  CONSTRAINT fk_id_zona_boleta FOREIGN KEY (id_escenario) REFERENCES escenario (id_escenario) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_id_tipo_boleta FOREIGN KEY (id_artista) REFERENCES artista (id_artista) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_id_evento_boleta FOREIGN KEY (id_responsable) REFERENCES responsable (id_responsable) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+--
+-- Table structure for table `boleta`
+--
+
+CREATE TABLE boleta (
+  id_boleta  SMALLINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  id_zona SMALLINT UNSIGNED NOT NULL,
+  id_tipo_boleta SMALLINT UNSIGNED NOT NULL,
+  id_evento SMALLINT UNSIGNED NOT NULL,
+  id_compra SMALLINT UNSIGNED,
+  costo DECIMAL(15 , 5),
+  PRIMARY KEY  (id_boleta),
+  KEY idx_fk_id_zona (id_zona),
+  KEY idx_fk_id_tipo_boleta (id_tipo_boleta),
+  KEY idx_fk_id_evento (id_evento),
+  CONSTRAINT fk_id_zona_boleta FOREIGN KEY (id_escenario) REFERENCES escenario (id_escenario) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_id_tipo_boleta FOREIGN KEY (id_artista) REFERENCES artista (id_artista) ON DELETE RESTRICT ON UPDATE CASCADE,
+  CONSTRAINT fk_id_evento_boleta FOREIGN KEY (id_responsable) REFERENCES responsable (id_responsable) ON DELETE RESTRICT ON UPDATE CASCADE
+  CONSTRAINT fk_id_compra FOREIGN KEY (id_compra) REFERENCES compra (id_compra) ON DELETE RESTRICT ON UPDATE CASCADE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 
